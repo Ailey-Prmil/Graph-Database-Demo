@@ -1,0 +1,35 @@
+services:
+  rdbms:
+    image: mysql:8.0
+    container_name: mysql_dbms
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: rdbms
+      MYSQL_DATABASE: rdbms
+      MYSQL_USER: rdbms
+      MYSQL_PASSWORD: rdbms
+    ports:
+      - "3308:3306"
+    volumes:
+      - rdbms_data:/var/lib/mysql
+      - ./db-init.sql:/docker-entrypoint-initdb.d/db-init.sql
+      - ./db-seed1.sql:/docker-entrypoint-initdb.d/db-seed1.sql
+      - ./db-seed2.sql:/docker-entrypoint-initdb.d/db-seed2.sql
+
+  neo4j:
+    image: neo4j:latest
+    volumes:
+      - ./neo4j/logs:/logs
+      - ./neo4j/config:/config
+      - ./neo4j/data:/data
+      - ./neo4j/plugins:/plugins
+      - ./init:/var/lib/neo4j/import
+    environment:
+      - NEO4J_AUTH=neo4j/graph_db
+    ports:
+      - "7474:7474"
+      - "7687:7687"
+    restart: always
+
+volumes:
+  rdbms_data:
