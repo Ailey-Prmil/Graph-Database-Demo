@@ -1,6 +1,6 @@
 // 1. FIND PEOPLE (NOT YET FRIENDS) WITH SIMILAR MUSIC TASTE BASED ON PLAYLIST OVERLAPS
 MATCH (me:Person {id: 1})<-[:LIKED_BY]-(item)-[:LIKED_BY]->(other:Person)
-WHERE me <> other AND NOT (me)-[:FRIEND]-(other)
+WHERE me <> other AND NOT (me)-[:FRIENDS_WITH]-(other)
 WITH me, other, COUNT(DISTINCT item) AS total_shared_likes
 ORDER BY total_shared_likes DESC
 RETURN me.name AS person, other.name AS recommendation, total_shared_likes;
