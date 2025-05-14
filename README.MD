@@ -84,11 +84,10 @@ A database that uses graph structures (nodes, edges/relationships) to represent 
 3. DGraph
 4. MemGraph
 5. OrientDB
-6. Janus Graph
 
 ---
 
-### **3. Applications of Graph Databases**
+# **3. Applications of Graph Databases**
 
 - **Social networks**: User connections, feed generation
 - **Fraud detection**: Uncover hidden relationships between entities
@@ -97,7 +96,7 @@ A database that uses graph structures (nodes, edges/relationships) to represent 
 
 ---
 
-### **4. Strengths and Limitations**
+# **4. Strengths and Limitations**
 
 - **Advantages**:
 
@@ -113,5 +112,3 @@ A database that uses graph structures (nodes, edges/relationships) to represent 
   - Write scalability can be challenging in distributed setups
 
 ---
-
-### **5. Conclusion**
