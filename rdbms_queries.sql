@@ -1,28 +1,51 @@
 -- 1. FIND PEOPLE (NOT YET FRIENDS) WITH SIMILAR MUSIC TASTE BASED ON PLAYLIST OVERLAPS
-SELECT
-    p1.name AS person,
-    p2.name AS recommendation,
-    COUNT(DISTINCT pl1.playlist_id) AS shared_playlist_count,
-    COUNT(DISTINCT sl1.song_id) AS shared_song_count,
-    COUNT(DISTINCT pl1.playlist_id) + COUNT(DISTINCT sl1.song_id) AS total_count
-FROM Person p1
-JOIN Person p2
-JOIN rdbms.Playlist_Like pl1 ON p1.id = pl1.person_id
-JOIN rdbms.Playlist_Like pl2 ON p2.id = pl2.person_id
-JOIN rdbms.Song_Like sl1 on p1.id = sl1.person_id
-JOIN rdbms.Song_Like sl2 on p2.id = sl2.person_id
-WHERE NOT EXISTS (
-    SELECT *
-    FROM Friendship
-    WHERE person1_id = p1.id
-    AND person2_id = p2.id
+WITH interactions AS (
+    SELECT
+        p1.id AS person,
+        p2.id AS r_id,
+        p2.name AS recommendation,
+        COUNT(DISTINCT pl1.playlist_id) AS shared_playlist_count,
+        0 AS shared_song_count
+    FROM rdbms.Playlist_Like pl1
+    JOIN rdbms.Playlist_Like pl2 ON pl1.playlist_id = pl2.playlist_id
+    JOIN Person p1 ON p1.id = pl1.person_id
+    JOIN Person p2 ON p2.id = pl2.person_id
+    LEFT JOIN Friendship f ON f.person1_id = p1.id AND f.person2_id = p2.id
+    WHERE p1.id IN (1,2) AND p1.id <> p2.id AND f.person1_id IS NULL
+    GROUP BY person, p2.id, p2.name
+    UNION ALL
+    SELECT
+        p1.id AS person,
+        p2.id AS r_id,
+        p2.name AS recommendation,
+        0 AS shared_playlist_count,
+        COUNT(DISTINCT s1.song_id) AS shared_song_count
+    FROM rdbms.Song_Like s1
+    JOIN rdbms.Song_Like s2 ON s1.song_id = s2.song_id
+    JOIN Person p1 ON p1.id = s1.person_id
+    JOIN Person p2 ON p2.id = s2.person_id
+    LEFT JOIN Friendship f ON f.person1_id = p1.id AND f.person2_id = p2.id
+    WHERE p1.id IN (1,2) AND p1.id <> p2.id AND f.person1_id IS NULL
+    GROUP BY person, p2.id, p2.name
+),
+aggregated AS (
+    SELECT
+        person,
+        r_id,
+        recommendation,
+        SUM(shared_playlist_count) AS shared_playlist_count,
+        SUM(shared_song_count) AS shared_song_count
+    FROM interactions
+    GROUP BY person, r_id, recommendation
 )
-AND p1.id = 1 -- me : Change id for each user
-AND pl1.playlist_id = pl2.playlist_id
-AND sl1.song_id = sl2.song_id
-AND p1.id <> p2.id
-GROUP BY p2.id, recommendation
-ORDER BY total_count DESC;
+SELECT 
+    person, 
+    r_id, 
+    recommendation, 
+    (shared_playlist_count + shared_song_count) 
+        AS shared_total_count 
+FROM aggregated
+ORDER BY shared_total_count DESC;
 
 -- 2. FIND PEOPLE WHO LIKES SONG PERFORMED BY THEIR FRIENDS' FOLLOWED ARTISTS AND CONTAINED IN PLAYLISTS CREATED BY THAT FRIEND
 SELECT DISTINCT p1.name AS person_name, s.name AS song_name
